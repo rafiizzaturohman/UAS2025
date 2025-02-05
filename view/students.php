@@ -1,10 +1,5 @@
 <?php
-session_start();
-if (!isset($_SESSION['user_id'])) {
-    header('Location: ../index.php');
-    exit;
-}
-
+include('../auth.php');
 include '../lib/config.php';
 
 $action = $_POST['action'] ?? null;

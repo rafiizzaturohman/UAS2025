@@ -1,21 +1,51 @@
 <?php
-session_start(); // Memulai session
-if (!isset($_SESSION['user_id'])) { // Memeriksa apakah user sudah login
-    header('Location: ../index.php'); // Jika belum maka akan diarahkan kembali ke halaman login
+include('../auth.php');
+include '../lib/config.php';
+
+try {
+    $user_id = $_SESSION['user_id'];
+    $stmt = $pdo->prepare("SELECT * FROM users WHERE id = ?");
+    $stmt->execute([$user_id]);
+    $user = $stmt->fetch();
+
+    if (!$user) {
+        throw new Exception("User not found.");
+    }
+
+    // Menghitung jumlah mahasiswa
+    $stmt_students = $pdo->prepare("SELECT COUNT(*) AS total_students FROM students");
+    $stmt_students->execute();
+    $total_students = $stmt_students->fetchColumn();
+
+    // Menghitung jumlah kelas
+    $stmt_classes = $pdo->prepare("SELECT COUNT(*) AS total_classes FROM classes");
+    $stmt_classes->execute();
+    $total_classes = $stmt_classes->fetchColumn();
+
+    // Menghitung jumlah dosen
+    $stmt_teachers = $pdo->prepare("SELECT COUNT(*) AS total_teachers FROM teachers");
+    $stmt_teachers->execute();
+    $total_teachers = $stmt_teachers->fetchColumn();
+
+    // Menghitung jumlah mata kuliah
+    $stmt_subjects = $pdo->prepare("SELECT COUNT(*) AS total_subjects FROM subjects");
+    $stmt_subjects->execute();
+    $total_subjects = $stmt_subjects->fetchColumn();
+
+    // Menghitung jumlah mahasiswa per kelas
+    $stmt_students_per_class = $pdo->prepare("SELECT c.class_name, COUNT(s.id) AS student_count FROM classes c LEFT JOIN students s ON c.id = s.class_id GROUP BY c.id, c.class_name");
+    $stmt_students_per_class->execute();
+    $students_per_class = $stmt_students_per_class->fetchAll(PDO::FETCH_ASSOC);
+} catch (Exception $e) {
+    // Log the error and redirect to an error page
+    error_log($e->getMessage());
+    header('Location: ../error.php');
     exit;
 }
-
-include '../lib/config.php'; // Mengambil konfigurasi database
-
-$user_id = $_SESSION['user_id']; // Mengambil data id dari session
-$stmt = $pdo->prepare("SELECT * FROM users WHERE id = ?"); // Mengambil data user berdasarkan id session
-$stmt->execute([$user_id]); // Menjalankan query yang telah disiapkan dengan parameter user_id
-$user = $stmt->fetch(); //Membuat variabel user yang memiliki 
-                        // value berupa data dari database berdasarkan username yang telah diinputkan
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -24,8 +54,11 @@ $user = $stmt->fetch(); //Membuat variabel user yang memiliki
     <link rel="stylesheet" href="https://site-assets.fontawesome.com/releases/v6.5.1/css/all.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-    
+    <style type="text/css">
+        
+    </style>
 </head>
+
 <body>
     <header>
         <nav class="navbar">
@@ -40,7 +73,6 @@ $user = $stmt->fetch(); //Membuat variabel user yang memiliki
         <aside class="sidebar">
             <ul>
                 <li>
-                    
                     <a href="#" class="dropdown-toggle">Data</a>
                     <ul class="dropdown-menu">
                         <li><a href="grades.php">Nilai</a></li>
@@ -59,7 +91,52 @@ $user = $stmt->fetch(); //Membuat variabel user yang memiliki
         </aside>
         <main class="content">
             <h1>Selamat Datang, <?php echo htmlspecialchars($user['username']); ?>!</h1>
-            <!-- Konten utama dashboard -->
+            <div class="dashboard-info-container">
+                <!-- Kartu Jumlah Mahasiswa -->
+                <div class="info-card">
+                    <h3>Jumlah Mahasiswa</h3>
+                    <p><?php echo $total_students; ?></p>
+                </div>
+
+                <!-- Kartu Jumlah Kelas -->
+                <div class="info-card">
+                    <h3>Jumlah Kelas</h3>
+                    <p><?php echo $total_classes; ?></p>
+                </div>
+
+                <!-- Kartu Jumlah Dosen -->
+                <div class="info-card">
+                    <h3>Jumlah Dosen</h3>
+                    <p><?php echo $total_teachers; ?></p>
+                </div>
+
+                <!-- Kartu Jumlah Mata Kuliah -->
+                <div class="info-card">
+                    <h3>Jumlah Mata Kuliah</h3>
+                    <p><?php echo $total_subjects; ?></p>
+                </div>
+            </div>
+
+            <!-- Tabel Jumlah Mahasiswa per Kelas -->
+            <div class="students-per-class">
+                <h2>Jumlah Mahasiswa per Kelas</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nama Kelas</th>
+                            <th>Jumlah Mahasiswa</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($students_per_class as $class): ?>
+                            <tr>
+                                <td><?php echo htmlspecialchars($class['class_name']); ?></td>
+                                <td><?php echo htmlspecialchars($class['student_count']); ?></td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
         </main>
     </div>
     <footer>
@@ -74,4 +151,5 @@ $user = $stmt->fetch(); //Membuat variabel user yang memiliki
         });
     </script>
 </body>
+
 </html>

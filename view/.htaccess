@@ -1,0 +1,4 @@
+RewriteEngine On
+
+RewriteCond %{HTTP_COOKIE} user_id=false [NC]
+RewriteRule ^(.*)$ ./error.php?_route_=$1 [L,QSA]
