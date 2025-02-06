@@ -101,7 +101,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') { //Memeriksa apakah form telah di sub
                     <label></label>
                 </div>
                 <div class="infield">
-                    <input type="password" name="password" placeholder="Password" required>
+                    <input type="password" name="password" minlength="8" placeholder="Password" required>
                     <label></label>
                 </div>
                 <button type="submit" name="register">Register</button>
@@ -115,7 +115,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') { //Memeriksa apakah form telah di sub
                     <label></label>
                 </div>
                 <div class="infield">
-                    <input type="password" name="password" placeholder="Password" required>
+                    <input type="password" name="password" minlength="8" placeholder="Password" required>
                     <label></label>
                 </div>
                 <?php if (!empty($error)) echo "<p style='color:red;'>$error</p>"; ?>

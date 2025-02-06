@@ -14,12 +14,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $stmt->execute([$class_name]);
         header('Location: classes.php');
         exit;
-    } elseif ($action == 'update') {
-        $stmt = $pdo->prepare("UPDATE classes SET class_name = ? WHERE id = ?");
+    } elseif ($action == 'update') { // 
+        $stmt = $pdo->prepare("UPDATE classes SET class_name = ? WHERE id = ?"); // 
         $stmt->execute([$class_name, $id]);
         header('Location: classes.php');
         exit;
-    } elseif ($action == 'delete') {
+    } elseif ($action == 'delete') { 
         // Cek apakah kelas digunakan oleh mahasiswa
         $stmt = $pdo->prepare("SELECT * FROM students WHERE class_id = ?");
         $stmt->execute([$id]);
